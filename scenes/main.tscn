@@ -46,8 +46,8 @@ grow_horizontal = 2
 grow_vertical = 2
 
 tab_count = 2
-tab_0/title = "🏭 产线编辑器"
-tab_1/title = "▶ 仿真运行"
+tab_0/title = "产线编辑器"
+tab_1/title = "仿真运行"
 
 [node name="EditorPlaceholder" type="CenterContainer" parent="Content"]
 layout_mode = 2
