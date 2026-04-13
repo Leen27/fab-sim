@@ -41,9 +41,9 @@ fab-sim/
 │       └── machine_item.gd   # 设备节点交互逻辑
 │
 └── data/                      # 数据配置文件（JSON）
-    ├── default_layout.json   # 默认产线布局
-    ├── machine_types.json    # 设备类型定义
-    └── recipes.json          # 工艺配方定义
+	├── default_layout.json   # 默认产线布局
+	├── machine_types.json    # 设备类型定义
+	└── recipes.json          # 工艺配方定义
 ```
 
 ## 技术栈详解
@@ -77,27 +77,27 @@ SimEngine 使用 Godot 信号机制进行状态通知：
 ```json
 {
   "machines": [
-    {
-      "id": "M1",
-      "type": "clean",        // 设备类型，对应 machine_types.json
-      "name": "清洗机",
-      "x": 100,               // 屏幕 X 坐标
-      "y": 300,               // 屏幕 Y 坐标
-      "process_time": 10      // 加工时间（分钟）
-    }
+	{
+	  "id": "M1",
+	  "type": "clean",        // 设备类型，对应 machine_types.json
+	  "name": "清洗机",
+	  "x": 100,               // 屏幕 X 坐标
+	  "y": 300,               // 屏幕 Y 坐标
+	  "process_time": 10      // 加工时间（分钟）
+	}
   ],
   "buffers": [
-    {
-      "id": "B1",
-      "name": "清洗后缓冲",
-      "x": 190,
-      "y": 420,
-      "capacity": 5           // 缓冲容量
-    }
+	{
+	  "id": "B1",
+	  "name": "清洗后缓冲",
+	  "x": 190,
+	  "y": 420,
+	  "capacity": 5           // 缓冲容量
+	}
   ],
   "connections": [
-    {"from": "M1", "to": "B1"},  // 连接关系：设备 -> 缓冲
-    {"from": "B1", "to": "M2"}   // 连接关系：缓冲 -> 设备
+	{"from": "M1", "to": "B1"},  // 连接关系：设备 -> 缓冲
+	{"from": "B1", "to": "M2"}   // 连接关系：缓冲 -> 设备
   ]
 }
 ```
@@ -106,20 +106,20 @@ SimEngine 使用 Godot 信号机制进行状态通知：
 ```json
 {
   "machine_types": [
-    {
-      "id": "clean",
-      "name": "清洗机",
-      "color": "#FFD700",
-      "default_time": 10,
-      "icon": "🟨"
-    }
+	{
+	  "id": "clean",
+	  "name": "清洗机",
+	  "color": "#FFD700",
+	  "default_time": 10,
+	  "icon": "🟨"
+	}
   ],
   "buffer": {
-    "id": "buffer",
-    "name": "缓冲",
-    "color": "#9370DB",
-    "default_capacity": 5,
-    "icon": "🟪"
+	"id": "buffer",
+	"name": "缓冲",
+	"color": "#9370DB",
+	"default_capacity": 5,
+	"icon": "🟪"
   }
 }
 ```
@@ -128,18 +128,18 @@ SimEngine 使用 Godot 信号机制进行状态通知：
 ```json
 {
   "recipes": [
-    {
-      "id": "R001",
-      "name": "标准晶圆工艺",
-      "steps": [
-        {"step": 1, "machine_type": "clean", "time": 10},
-        {"step": 2, "machine_type": "deposition", "time": 30},
-        {"step": 3, "machine_type": "lithography", "time": 45},
-        {"step": 4, "machine_type": "etching", "time": 30},
-        {"step": 5, "machine_type": "heat", "time": 20},
-        {"step": 6, "machine_type": "inspect", "time": 15}
-      ]
-    }
+	{
+	  "id": "R001",
+	  "name": "标准晶圆工艺",
+	  "steps": [
+		{"step": 1, "machine_type": "clean", "time": 10},
+		{"step": 2, "machine_type": "deposition", "time": 30},
+		{"step": 3, "machine_type": "lithography", "time": 45},
+		{"step": 4, "machine_type": "etching", "time": 30},
+		{"step": 5, "machine_type": "heat", "time": 20},
+		{"step": 6, "machine_type": "inspect", "time": 15}
+	  ]
+	}
   ]
 }
 ```
@@ -199,11 +199,11 @@ var current_time: float = 0.0  # 仿真时间（分钟）
 var time_scale: float = 1.0    # 时间加速倍数
 
 func start():
-    """启动仿真，生成初始 Lot"""
-    if is_running:
-        return
-    is_running = true
-    _generate_lots(5)
+	"""启动仿真，生成初始 Lot"""
+	if is_running:
+		return
+	is_running = true
+	_generate_lots(5)
 ```
 
 ## 开发注意事项

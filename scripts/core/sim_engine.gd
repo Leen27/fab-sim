@@ -202,7 +202,7 @@ func _get_buffer_after_machine(machine_id: String) -> String:
 	for conn in connections:
 		if conn.from == machine_id and buffers.has(conn.to):
 			return conn.to
-	return null
+	return ""
 
 func _get_machine_after_buffer(buffer_id: String) -> String:
 	# 根据连接关系找到缓冲后的设备
