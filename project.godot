@@ -16,8 +16,17 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="FabSim"
 config/version="0.1.0"
+<<<<<<< HEAD
 run/main_scene="uid://main001"
 config/features=PackedStringArray("4.6", "Mobile")
+=======
+config/description="半导体工厂仿真系统 - MES 验证平台"
+config/features=PackedStringArray("4.2", "Mobile")
+run/main_scene="res://src/main.tscn"
+
+[autoload]
+FabSimEngine="*res://src/core/fabsim_engine.gd"
+>>>>>>> 0965630 (refactor: 按 v0.1 文档重构 FabSim 架构)
 
 [display]
 
@@ -26,5 +35,8 @@ window/size/viewport_height=900
 window/stretch/mode="canvas_items"
 
 [rendering]
-
 renderer/rendering_method="mobile"
+
+[debug]
+gdscript/warnings/unused_variable=0
+gdscript/warnings/unused_signal=0

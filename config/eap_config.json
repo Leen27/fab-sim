@@ -1,0 +1,193 @@
+{
+  "version": "0.1",
+  "description": "FabSim EAP 仿真配置",
+  
+  "status_variables": [
+    {
+      "svid": 1,
+      "sv_name": "ControlState",
+      "equipment_type": "ALL",
+      "data_type": "U1",
+      "units": "",
+      "description": "GEM Control State: 0=OFFLINE, 1=ONLINE, 4=LOCAL, 5=REMOTE",
+      "default_value": 0
+    },
+    {
+      "svid": 2,
+      "sv_name": "ProcessState",
+      "equipment_type": "ALL",
+      "data_type": "U1",
+      "units": "",
+      "description": "Process State: 0=IDLE, 2=PROCESSING",
+      "default_value": 0
+    },
+    {
+      "svid": 3,
+      "sv_name": "CurrentLotID",
+      "equipment_type": "ALL",
+      "data_type": "A",
+      "units": "",
+      "description": "当前加工的批次ID",
+      "default_value": ""
+    },
+    {
+      "svid": 4,
+      "sv_name": "CurrentPPID",
+      "equipment_type": "ALL",
+      "data_type": "A",
+      "units": "",
+      "description": "当前使用的配方ID",
+      "default_value": ""
+    },
+    {
+      "svid": 5,
+      "sv_name": "AlarmCount",
+      "equipment_type": "ALL",
+      "data_type": "U2",
+      "units": "",
+      "description": "当前活动告警数量",
+      "default_value": 0
+    },
+    {
+      "svid": 6,
+      "sv_name": "TotalProcessed",
+      "equipment_type": "ALL",
+      "data_type": "U4",
+      "units": "",
+      "description": "累计加工批次数量",
+      "default_value": 0
+    },
+    {
+      "svid": 10,
+      "sv_name": "ProcessStartTime",
+      "equipment_type": "ALL",
+      "data_type": "A",
+      "units": "",
+      "description": "当前批次开始加工时间",
+      "default_value": ""
+    }
+  ],
+  
+  "collection_events": [
+    {
+      "ceid": 1001,
+      "ce_name": "ControlStateChanged",
+      "description": "控制状态变更事件",
+      "enabled_by_default": true,
+      "reports": [1]
+    },
+    {
+      "ceid": 1002,
+      "ce_name": "ProcessStateChanged",
+      "description": "工艺状态变更事件",
+      "enabled_by_default": true,
+      "reports": [2]
+    },
+    {
+      "ceid": 1011,
+      "ce_name": "ProcessingStarted",
+      "description": "批次加工开始",
+      "enabled_by_default": true,
+      "reports": [3]
+    },
+    {
+      "ceid": 1012,
+      "ce_name": "ProcessingCompleted",
+      "description": "批次加工完成",
+      "enabled_by_default": true,
+      "reports": [4]
+    },
+    {
+      "ceid": 1021,
+      "ce_name": "AlarmSet",
+      "description": "告警触发",
+      "enabled_by_default": true,
+      "reports": [5]
+    },
+    {
+      "ceid": 1022,
+      "ce_name": "AlarmCleared",
+      "description": "告警清除",
+      "enabled_by_default": true,
+      "reports": [5]
+    }
+  ],
+  
+  "reports": [
+    {
+      "rptid": 1,
+      "rpt_name": "ControlStateReport",
+      "svids": [1, 2]
+    },
+    {
+      "rptid": 2,
+      "rpt_name": "ProcessStateReport",
+      "svids": [2, 3, 4]
+    },
+    {
+      "rptid": 3,
+      "rpt_name": "ProcessingStartReport",
+      "svids": [3, 4, 10]
+    },
+    {
+      "rptid": 4,
+      "rpt_name": "ProcessingCompleteReport",
+      "svids": [3, 4, 6]
+    },
+    {
+      "rptid": 5,
+      "rpt_name": "AlarmReport",
+      "svids": [5]
+    }
+  ],
+  
+  "alarms": [
+    {
+      "alid": 1,
+      "alarm_name": "CommunicationError",
+      "alarm_text": "通信错误",
+      "alarm_set_ceid": 1021,
+      "alarm_clear_ceid": 1022
+    },
+    {
+      "alid": 2,
+      "alarm_name": "ProcessAborted",
+      "alarm_text": "加工终止",
+      "alarm_set_ceid": 1021,
+      "alarm_clear_ceid": 1022
+    }
+  ],
+  
+  "remote_commands": [
+    {
+      "rcmd": "PP-SELECT",
+      "description": "选择配方",
+      "parameters": ["ppid"]
+    },
+    {
+      "rcmd": "START",
+      "description": "开始加工",
+      "parameters": ["lot_id"]
+    },
+    {
+      "rcmd": "STOP",
+      "description": "停止加工",
+      "parameters": []
+    },
+    {
+      "rcmd": "PAUSE",
+      "description": "暂停加工",
+      "parameters": []
+    },
+    {
+      "rcmd": "RESUME",
+      "description": "恢复加工",
+      "parameters": []
+    },
+    {
+      "rcmd": "ABORT",
+      "description": "终止加工",
+      "parameters": []
+    }
+  ]
+}

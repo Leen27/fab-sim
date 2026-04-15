@@ -1,0 +1,110 @@
+{
+  "version": "0.1",
+  "factory_name": "FabSim 演示工厂",
+  "description": "半导体前道工艺仿真工厂",
+  
+  "areas": [
+    {
+      "area_id": "AREA_D1",
+      "area_name": "沉积区",
+      "description": "薄膜沉积工艺区域"
+    },
+    {
+      "area_id": "AREA_L1", 
+      "area_name": "光刻区",
+      "description": "光刻曝光工艺区域"
+    },
+    {
+      "area_id": "AREA_E1",
+      "area_name": "刻蚀区", 
+      "description": "刻蚀工艺区域"
+    }
+  ],
+  
+  "equipment": [
+    {
+      "equipment_id": "EQ_D001",
+      "equipment_type": "DEPOSITION",
+      "equipment_name": "沉积机 #1",
+      "area_id": "AREA_D1",
+      "work_area_id": "D1-01",
+      "input_bank": "BK_D1_IN",
+      "output_bank": "BK_D1_OUT",
+      "upstream": [],
+      "downstream": ["EQ_L001"]
+    },
+    {
+      "equipment_id": "EQ_L001",
+      "equipment_type": "LITHOGRAPHY",
+      "equipment_name": "光刻机 #1",
+      "area_id": "AREA_L1",
+      "work_area_id": "L1-01",
+      "input_bank": "BK_L1_IN",
+      "output_bank": "BK_L1_OUT",
+      "upstream": ["EQ_D001"],
+      "downstream": ["EQ_E001"]
+    },
+    {
+      "equipment_id": "EQ_E001",
+      "equipment_type": "ETCHING",
+      "equipment_name": "刻蚀机 #1",
+      "area_id": "AREA_E1",
+      "work_area_id": "E1-01",
+      "input_bank": "BK_E1_IN",
+      "output_bank": "BK_E1_OUT",
+      "upstream": ["EQ_L001"],
+      "downstream": []
+    }
+  ],
+  
+  "banks": [
+    {
+      "bank_id": "BK_D1_IN",
+      "bank_name": "沉积入口缓存",
+      "bank_type": "INPUT",
+      "associated_equipment": "EQ_D001",
+      "capacity": 5,
+      "dispatch_policy": "MES_DIRECT"
+    },
+    {
+      "bank_id": "BK_D1_OUT",
+      "bank_name": "沉积出口缓存",
+      "bank_type": "OUTPUT",
+      "associated_equipment": "EQ_D001",
+      "capacity": 5,
+      "dispatch_policy": "MES_DIRECT"
+    },
+    {
+      "bank_id": "BK_L1_IN",
+      "bank_name": "光刻入口缓存",
+      "bank_type": "INPUT",
+      "associated_equipment": "EQ_L001",
+      "capacity": 5,
+      "dispatch_policy": "MES_DIRECT"
+    },
+    {
+      "bank_id": "BK_L1_OUT",
+      "bank_name": "光刻出口缓存",
+      "bank_type": "OUTPUT",
+      "associated_equipment": "EQ_L001",
+      "capacity": 5,
+      "dispatch_policy": "MES_DIRECT"
+    },
+    {
+      "bank_id": "BK_E1_IN",
+      "bank_name": "刻蚀入口缓存",
+      "bank_type": "INPUT",
+      "associated_equipment": "EQ_E001",
+      "capacity": 5,
+      "dispatch_policy": "MES_DIRECT"
+    },
+    {
+      "bank_id": "BK_E1_OUT",
+      "bank_name": "刻蚀出口缓存",
+      "bank_type": "OUTPUT",
+      "associated_equipment": "EQ_E001",
+      "capacity": 5,
+      "dispatch_policy": "MES_DIRECT"
+    }
+  ]
+}

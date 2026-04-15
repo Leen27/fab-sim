@@ -1,0 +1,55 @@
+{
+  "recipe_id": "RCP_STD_001",
+  "recipe_name": "标准三工序工艺",
+  "description": "沉积-光刻-刻蚀标准工艺流程",
+  "version": "1.0",
+  "steps": [
+    {
+      "step_id": "STEP_DEP",
+      "step_name": "薄膜沉积",
+      "step_order": 1,
+      "equipment_type": "DEPOSITION",
+      "required_equipment": "",
+      "process_time": 30.0,
+      "parameters": {
+        "temperature": 300,
+        "pressure": 1.5,
+        "gas_flow": "100sccm",
+        "thickness_target": "100nm"
+      },
+      "inspection_required": false,
+      "next_steps": []
+    },
+    {
+      "step_id": "STEP_LITH",
+      "step_name": "光刻曝光",
+      "step_order": 2,
+      "equipment_type": "LITHOGRAPHY",
+      "required_equipment": "",
+      "process_time": 45.0,
+      "parameters": {
+        "exposure_time": 5.0,
+        "energy": "20mJ/cm2",
+        "focus": "0.0um"
+      },
+      "inspection_required": false,
+      "next_steps": []
+    },
+    {
+      "step_id": "STEP_ETCH",
+      "step_name": "干法刻蚀",
+      "step_order": 3,
+      "equipment_type": "ETCHING",
+      "required_equipment": "",
+      "process_time": 25.0,
+      "parameters": {
+        "pressure": 0.5,
+        "power": "200W",
+        "gas_type": "CF4",
+        "etch_rate": "100nm/min"
+      },
+      "inspection_required": true,
+      "next_steps": []
+    }
+  ]
+}

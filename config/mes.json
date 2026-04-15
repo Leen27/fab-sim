@@ -1,0 +1,16 @@
+{
+  "mes_endpoint": "http://localhost:8080",
+  "auth": {
+    "type": "bearer",
+    "token": ""
+  },
+  "retry_policy": {
+    "max_retries": 3,
+    "retry_interval_ms": 5000
+  },
+  "eap_simulation": {
+    "enabled": true,
+    "auto_report_events": true,
+    "event_buffer_size": 100
+  }
+}
