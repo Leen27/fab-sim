@@ -1,0 +1,53 @@
+{
+  "machine_types": [
+    {
+      "id": "clean",
+      "name": "清洗机",
+      "color": "#FFD700",
+      "default_time": 10,
+      "icon": "🟨"
+    },
+    {
+      "id": "deposition",
+      "name": "沉积机",
+      "color": "#32CD32",
+      "default_time": 30,
+      "icon": "🟩"
+    },
+    {
+      "id": "lithography",
+      "name": "光刻机",
+      "color": "#1E90FF",
+      "default_time": 45,
+      "icon": "🟦"
+    },
+    {
+      "id": "etching",
+      "name": "刻蚀机",
+      "color": "#DC143C",
+      "default_time": 30,
+      "icon": "🟥"
+    },
+    {
+      "id": "heat",
+      "name": "热处理",
+      "color": "#FF8C00",
+      "default_time": 20,
+      "icon": "🟧"
+    },
+    {
+      "id": "inspect",
+      "name": "检测机",
+      "color": "#D3D3D3",
+      "default_time": 15,
+      "icon": "⬜"
+    }
+  ],
+  "buffer": {
+    "id": "buffer",
+    "name": "缓冲",
+    "color": "#9370DB",
+    "default_capacity": 5,
+    "icon": "🟪"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "diary": {
+    "count": 13,
+    "last_ts": "2026-04-15T03:54:27.324629",
+    "last_day": 7,
+    "last_sessions": 1,
+    "last_messages": 18,
+    "last_filename": "day7-2026-04-15-architect_mode_overdrive.md",
+    "last_latency_s": 23.9,
+    "last_skip": "conversation_hash_unchanged"
+  },
+  "compact": {
+    "count": 13,
+    "last_ts": "2026-04-15T03:54:27.439679",
+    "last_invoke": 6,
+    "last_sessions": 5,
+    "last_messages": 49,
+    "last_latency_s": 19.9,
+    "last_model": "k2p5",
+    "last_skip": "stm_hash_unchanged"
+  },
+  "stm": {
+    "count": 5,
+    "last_ts": "2026-04-15T07:49:03.922517",
+    "last_sessions": 5,
+    "last_messages": 49,
+    "last_chars": 9552
+  }
+}

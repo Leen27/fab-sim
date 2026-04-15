@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body { 
+  margin: 0; 
+  background: #0a0a0c; 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+#app { 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+canvas { 
+  border-radius: 8px; 
+  box-shadow: 0 4px 30px rgba(0,0,0,0.6);
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const canvas = document.createElement('canvas');
+canvas.width = 1400;
+canvas.height = 900;
+document.getElementById('app').appendChild(canvas);
+const ctx = canvas.getContext('2d');
+
+// 设备配置
+const machines = [
+  { id: 'M1', name: '清洗机', color: '#FFD700', x: 100, y: 300, time: 10, status: '空闲', wip: 0 },
+  { id: 'M2', name: '沉积机', color: '#32CD32', x: 280, y: 300, time: 30, status: '加工中', wip: 2 },
+  { id: 'M3', name: '光刻机', color: '#1E90FF', x: 460, y: 300, time: 45, status: '排队', wip: 3 },
+  { id: 'M4', name: '刻蚀机', color: '#DC143C', x: 640, y: 300, time: 30, status: '空闲', wip: 0 },
+  { id: 'M5', name: '热处理', color: '#FF8C00', x: 820, y: 300, time: 20, status: '空闲', wip: 0 },
+  { id: 'M6', name: '检测机', color: '#D3D3D3', x: 1000, y: 300, time: 15, status: '空闲', wip: 0 }
+];
+
+const buffers = [
+  { id: 'B1', x: 190, y: 420, wip: 1 },
+  { id: 'B2', x: 370, y: 420, wip: 2 },
+  { id: 'B3', x: 550, y: 420, wip: 0 },
+  { id: 'B4', x: 730, y: 420, wip: 0 },
+  { id: 'B5', x: 910, y: 420, wip: 0 }
+];
+
+function drawRoundedRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function draw() {
+  // 背景
+  ctx.fillStyle = '#0a0a0c';
+  ctx.fillRect(0, 0, 1400, 900);
+  
+  // 标题栏
+  ctx.fillStyle = '#1a1a1e';
+  ctx.fillRect(0, 0, 1400, 50);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillText('🔥 FabSim - 半导体工厂仿真系统', 20, 32);
+  
+  // 控制面板背景
+  ctx.fillStyle = '#121216';
+  ctx.fillRect(0, 50, 1400, 60);
+  
+  // 按钮
+  const buttons = ['▶ 开始', '⏸ 暂停', '⏹ 重置', '1x', '10x', '100x'];
+  let bx = 20;
+  buttons.forEach((btn, i) => {
+    ctx.fillStyle = i < 3 ? '#2a6aa8' : (i === 3 ? '#4a9ada' : '#3a4a5a');
+    drawRoundedRect(bx, 60, i < 3 ? 80 : 50, 36, 6);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px sans-serif';
+    const textX = bx + (i < 3 ? 40 : 25) - ctx.measureText(btn).width/2;
+    ctx.fillText(btn, textX, 84);
+    bx += i < 3 ? 90 : 60;
+  });
+  
+  // 状态显示
+  ctx.fillStyle = '#fff';
+  ctx.font = '16px sans-serif';
+  ctx.fillText('⏱️ 时间: 02:35', 500, 84);
+  ctx.fillText('📦 WIP: 8', 650, 84);
+  ctx.fillText('⚡ 产能: 12/h', 780, 84);
+  
+  // 绘制连接线和缓冲
+  ctx.strokeStyle = '#3a3a4a';
+  ctx.lineWidth = 3;
+  buffers.forEach((buf, i) => {
+    const machine = machines[i];
+    const nextMachine = machines[i + 1];
+    if (nextMachine) {
+      ctx.beginPath();
+      ctx.moveTo(machine.x + 60, machine.y + 70);
+      ctx.lineTo(buf.x + 40, buf.y);
+      ctx.lineTo(nextMachine.x + 60, nextMachine.y + 70);
+      ctx.stroke();
+    }
+    
+    // 缓冲
+    ctx.fillStyle = '#9370DB';
+    drawRoundedRect(buf.x, buf.y, 80, 50, 8);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('缓冲', buf.x + 25, buf.y + 22);
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(buf.wip.toString(), buf.x + 36, buf.y + 42);
+  });
+  
+  // 绘制设备
+  machines.forEach(m => {
+    // 设备方块
+    ctx.fillStyle = m.color;
+    drawRoundedRect(m.x, m.y, 120, 70, 6);
+    ctx.fill();
+    
+    // 边框高光
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillRect(m.x, m.y, 120, 3);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(m.x, m.y + 67, 120, 3);
+    
+    // 设备名
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(m.name, m.x + 35, m.y + 30);
+    
+    // 状态
+    ctx.fillStyle = m.status === '加工中' ? '#080' : (m.status === '排队' ? '#a60' : '#555');
+    ctx.font = '12px sans-serif';
+    ctx.fillText(m.status, m.x + 42, m.y + 52);
+    
+    // WIP数量角标
+    if (m.wip > 0) {
+      ctx.fillStyle = '#FF4444';
+      ctx.beginPath();
+      ctx.arc(m.x + 110, m.y + 15, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(m.wip.toString(), m.x + 107, m.y + 19);
+    }
+  });
+  
+  // 信息面板
+  ctx.fillStyle = '#1a1a22';
+  ctx.strokeStyle = '#3a3a4a';
+  ctx.lineWidth = 1;
+  drawRoundedRect(20, 550, 250, 150, 8);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText('📊 仿真状态', 100, 580);
+  ctx.font = '14px sans-serif';
+  ctx.fillStyle = '#aaa';
+  ctx.fillText('状态: 运行中', 40, 615);
+  ctx.fillText('已完成: 5 Lots', 40, 645);
+  ctx.fillText('平均CT: 145min', 40, 675);
+  
+  // 图例
+  ctx.fillStyle = '#888';
+  ctx.font = '13px sans-serif';
+  const legend = '🟨清洗  🟩沉积  🟦光刻  🟥刻蚀  🟧热处理  ⬜检测  🟪缓冲';
+  ctx.fillText(legend, 300, 750);
+}
+
+draw();
+</script>
+</body>
+</html>

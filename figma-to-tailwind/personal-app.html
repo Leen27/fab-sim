@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal App - 长鑫项目</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+    <!-- 页面容器 -->
+    <div class="w-full min-h-[752px] bg-white">
+        
+        <!-- ==================== Header / Title Bar ==================== -->
+        <header class="w-full h-12 flex items-center justify-between px-4 border-b border-black/5">
+            
+            <!-- 左侧：搜索框 -->
+            <div class="flex items-center">
+                <div class="flex items-center gap-2 w-40 h-7 px-2 py-1 bg-[#DDE8EB] rounded-2xl">
+                    <!-- 搜索图标：绿色圆形 -->
+                    <div class="w-5 h-5 rounded-full bg-[#01C59D] flex items-center justify-center">
+                        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.84619 4.09633L2.95508 2.20521C4.24844 0.559452 3.94731 -1.94181 2.30154 -3.23517C0.65578 -4.52853 -1.84548 -4.2274 -3.13884 -2.58164C-3.63176 -1.91085 -3.87322 -1.08223 -3.87322 -0.235786C-3.87322 1.98733 -2.24988 3.61066 0.00127459 3.61066C0.847717 3.61066 1.67634 3.3692 2.34713 2.87628L4.23694 4.76609C4.46119 4.99034 4.86003 4.99034 5.08548 4.76609C5.30973 4.54184 5.30973 4.14299 5.08548 3.91754L4.84619 4.09633ZM0.000264885 2.57356C-1.40805 2.59603 -2.55786 1.47801 -2.57913 0.0697072C-2.6004 -1.3386 -1.48238 -2.48841 -0.0740744 -2.51088L0.000264885 -2.51088C1.40857 -2.51088 2.55379 -1.36566 2.55379 0.0426484C2.55379 1.45095 1.41097 2.57356 0.000264885 2.57356Z" fill="white"/>
+                        </svg>
+                    </div>
+                    
+                    <span class="text-sm text-black/20">Search</span>
+                </div>
+            </div>
+
+            <!-- 中间和右侧：Group 标签 + 控件 -->
+            <div class="flex items-center gap-10">
+                
+                <!-- Group 标签区域 -->
+                <div class="flex items-center gap-2">
+                    <!-- Group 1 -->
+                    <div class="flex items-center justify-center h-[30px] px-6 bg-[#E6F0FF] rounded-2xl cursor-pointer hover:bg-[#D6E8FF] transition-colors">
+                        <span class="text-sm font-medium text-[#055CB9]">Group 1</span>
+                    </div>
+                    
+                    <!-- Group 2 -->
+                    <div class="flex items-center justify-center h-[30px] px-6 bg-[#E6F0FF] rounded-2xl cursor-pointer hover:bg-[#D6E8FF] transition-colors">
+                        <span class="text-sm font-medium text-[#055CB9]">Group 2</span>
+                    </div>
+                    
+                    <!-- 添加 Group -->
+                    <div class="flex items-center justify-center h-[30px] px-2.5 bg-[#E6F0FF] rounded-2xl gap-2 cursor-pointer hover:bg-[#D6E8FF] transition-colors">
+                        <!-- Plus Icon -->
+                        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.66667 13.3333C3.72193 13.3333 1.33333 10.9447 1.33333 8C1.33333 5.05527 3.72193 2.66667 6.66667 2.66667C9.6114 2.66667 12 5.05527 12 8C12 10.9447 9.6114 13.3333 6.66667 13.3333ZM6.66667 12.3333C9.05927 12.3333 11 10.392 11 8C11 5.608 9.05927 3.66667 6.66667 3.66667C4.27407 3.66667 2.33333 5.608 2.33333 8C2.33333 10.392 4.27407 12.3333 6.66667 12.3333ZM7.16667 7.16667L10.1667 7.16667C10.2993 7.16667 10.4265 7.21932 10.5205 7.31335C10.6145 7.40738 10.6672 7.53458 10.6672 7.66717C10.6672 7.79976 10.6145 7.92696 10.5205 8.02099C10.4265 8.11502 10.2993 8.16767 10.1667 8.16767L7.16667 8.16767L7.16667 11.1677C7.16667 11.3003 7.11402 11.4275 7.01999 11.5215C6.92596 11.6155 6.79876 11.6682 6.66617 11.6682C6.53358 11.6682 6.40638 11.6155 6.31235 11.5215C6.21832 11.4275 6.16567 11.3003 6.16567 11.1677L6.16567 8.16767L3.16567 8.16767C3.03308 8.16767 2.90588 8.11502 2.81185 8.02099C2.71782 7.92696 2.66517 7.79976 2.66517 7.66717C2.66517 7.53458 2.71782 7.40738 2.81185 7.31335C2.90588 7.21932 3.03308 7.16667 3.16567 7.16667L6.16567 7.16667L6.16567 4.16667C6.16567 4.03408 6.21832 3.90688 6.31235 3.81285C6.40638 3.71882 6.53358 3.66617 6.66617 3.66617C6.79876 3.66617 6.92596 3.71882 7.01999 3.81285C7.11402 3.90688 7.16667 4.03408 7.16667 4.16667L7.16667 7.16667Z" fill="#055CB9"/>
+                        </svg>
+                        
+                        <span class="text-sm font-medium text-[#055CB9]">Group</span>
+                    </div>
+                </div>
+
+                <!-- 右侧控件区域 -->
+                <div class="flex items-center gap-4">
+                    
+                    <!-- 测试/设备状态图标 -->
+                    <div class="w-[14px] h-[14px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 13C10.3137 13 13 10.3137 13 7C13 3.68629 10.3137 1 7 1C3.68629 1 1 3.68629 1 7C1 10.3137 3.68629 13 7 13Z" stroke="#055CB9" stroke-width="1.5" fill="none"/>
+                            <path d="M7 4V7L9 9" stroke="#055CB9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+
+                    <!-- 通知铃铛 -->
+                    <div class="relative w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 rounded-xl transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path opacity="0.08" d="M13.1212 12.5L0.621241 12.5C0.51185 12.4993 0.404547 12.47 0.310058 12.4149C0.215569 12.3597 0.137204 12.2808 0.0827934 12.1859C0.0283831 12.091 -0.000165491 11.9835 7.21651e-07 11.8741C0.000166935 11.7647 0.0290421 11.6572 0.0837405 11.5625C0.598584 10.6719 1.24624 8.42266 1.24624 5.625C1.24624 4.13316 1.83887 2.70242 2.89376 1.64752C3.94866 0.592632 5.3794 1.66533e-15 6.87124 0C8.36308 5.55112e-16 9.79382 0.592632 10.8487 1.64752C11.9036 2.70242 12.4962 4.13316 12.4962 5.625C12.4962 8.42344 13.1447 10.6719 13.6603 11.5625C13.7151 11.6574 13.7439 11.7649 13.744 11.8745C13.7441 11.984 13.7155 12.0916 13.6609 12.1865C13.6063 12.2815 13.5277 12.3604 13.433 12.4154C13.3383 12.4705 13.2308 12.4996 13.1212 12.5Z" fill="#0066CC"/>
+                            <path d="M14.8272 11.8703C14.3936 11.1234 13.7491 9.01016 13.7491 6.25C13.7491 4.5924 13.0906 3.00269 11.9185 1.83058C10.7464 0.65848 9.1567 5.55112e-16 7.49909 0C5.84149 8.32667e-16 4.25178 0.65848 3.07968 1.83058C1.90757 3.00269 1.24909 4.5924 1.24909 6.25C1.24909 9.01094 0.603782 11.1234 0.170188 11.8703C0.0594621 12.0602 0.000761949 12.2759 7.36794e-06 12.4957C-0.000747213 12.7155 0.0564706 12.9316 0.16589 13.1223C0.27531 13.3129 0.433063 13.4713 0.623239 13.5815C0.813416 13.6917 1.02929 13.7498 1.24909 13.75L4.43738 13.75C4.58157 14.4556 4.96505 15.0897 5.52295 15.5451C6.08085 16.0006 6.77892 16.2493 7.49909 16.2493C8.21927 16.2493 8.91734 16.0006 9.47524 15.5451C10.0331 15.0897 10.4166 14.4556 10.5608 13.75L13.7491 13.75C13.9688 13.7497 14.1846 13.6915 14.3747 13.5812C14.5647 13.471 14.7224 13.3125 14.8317 13.1219C14.941 12.9313 14.9982 12.7153 14.9974 12.4955C14.9966 12.2758 14.9379 12.0601 14.8272 11.8703ZM7.49909 15C7.11145 14.9999 6.73338 14.8796 6.41691 14.6558C6.10043 14.4319 5.86112 14.1155 5.73191 13.75L9.26628 13.75C9.13707 14.1155 8.89776 14.4319 8.58128 14.6558C8.26481 14.8796 7.88674 14.9999 7.49909 15ZM1.24909 12.5C1.85066 11.4656 2.49909 9.06875 2.49909 6.25C2.49909 4.92392 3.02588 3.65215 3.96356 2.71447C4.90124 1.77678 6.17301 1.25 7.49909 1.25C8.82518 1.25 10.0969 1.77678 11.0346 2.71447C11.9723 3.65215 12.4991 4.92392 12.4991 6.25C12.4991 9.06641 13.146 11.4633 13.7491 12.5L1.24909 12.5Z" fill="#1A1A1A"/>
+                        </svg>
+                        
+                        <!-- 徽章 -->
+                        <span class="absolute top-0 right-0 w-2 h-2 bg-[#FC465C] rounded-full"></span>
+                    </div>
+
+                    <!-- 消息图标 -->
+                    <div class="w-6 h-6 flex items-center justify-center cursor-pointer hover:bg-gray-100 rounded-xl transition-colors">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7.5 15C11.6421 15 15 11.6421 15 7.5C15 3.35786 11.6421 0 7.5 0C3.35786 0 0 3.35786 0 7.5C0 8.88071 0.358612 10.1785 0.984662 11.2976C1.2246 11.7233 1.5625 12.0834 1.97916 12.0834L3.75 12.0834C4.21024 12.0834 4.58334 12.4564 4.58334 12.9166C4.58334 13.3769 4.21024 13.75 3.75 13.75L7.5 13.75L7.5 15Z" fill="#EBF6FD"/>
+                            <path d="M7.5 15L6.875 15C6.875 15.3452 7.15482 15.625 7.5 15.625L7.5 15ZM0.984662 11.2976L0.439206 11.6028L0.440214 11.6045L0.984662 11.2976ZM3.75 13.125C3.40482 13.125 3.125 13.4048 3.125 13.75C3.125 14.0952 3.40482 14.375 3.75 14.375L3.75 13.75L3.75 13.125ZM7.5 13.75L8.125 13.75C8.125 13.4048 7.84518 13.125 7.5 13.125L7.5 13.75ZM7.5 15L7.5 15.625C11.9873 15.625 15.625 11.9873 15.625 7.5L15 7.5L14.375 7.5C14.375 11.2969 11.2969 14.375 7.5 14.375L7.5 15ZM15 7.5L15.625 7.5C15.625 3.01268 11.9873 -0.625 7.5 -0.625L7.5 0L7.5 0.625C11.2969 0.625 14.375 3.70304 14.375 7.5L15 7.5ZM7.5 0L7.5 -0.625C3.01268 -0.625 -0.625 3.01268 -0.625 7.5L0 7.5L0.625 7.5C0.625 3.70304 3.70304 0.625 7.5 0.625L7.5 0ZM0 7.5L-0.625 7.5C-0.625 8.9899 -0.237842 10.3925 0.439209 11.6028L0.984662 11.2976L1.53012 10.9925C0.955067 9.96454 0.625 8.77153 0.625 7.5L0 7.5ZM0.984662 11.2976L0.440214 11.6045C0.581397 11.855 0.768051 12.1175 1.00811 12.324C1.25148 12.5333 1.57923 12.7084 1.97916 12.7084L1.97916 12.0834L1.97916 11.4584C1.96243 11.4584 1.9129 11.4534 1.82317 11.3762C1.73013 11.2962 1.62787 11.1659 1.52911 10.9907L0.984662 11.2976ZM1.97916 12.0834L1.97916 12.7084L3.75 12.7084L3.75 12.0834L3.75 11.4584L1.97916 11.4584L1.97916 12.0834ZM3.75 12.0834L3.75 12.7084C3.86515 12.7084 3.95834 12.8016 3.95834 12.9166L4.58334 12.9166L5.20834 12.9166C5.20834 12.1111 4.55532 11.4584 3.75 11.4584L3.75 12.0834ZM4.58334 12.9166L3.95834 12.9166C3.95834 13.0317 3.86503 13.125 3.75 13.125L3.75 13.75L3.75 14.375C4.55545 14.375 5.20834 13.722 5.20834 12.9166L4.58334 12.9166ZM3.75 13.75L3.75 14.375L7.5 14.375L7.5 13.75L7.5 13.125L3.75 13.125L3.75 13.75ZM7.5 13.75L6.875 13.75L6.875 15L7.5 15L8.125 15L8.125 13.75L7.5 13.75Z" fill="#1A1A1A"/>
+                            <circle cx="5" cy="7.5" r="1.25" fill="#1A1A1A"/>
+                            <circle cx="7.5" cy="7.5" r="1.25" fill="#1A1A1A"/>
+                            <circle cx="10" cy="7.5" r="1.25" fill="#1A1A1A"/>
+                        </svg>
+                    </div>
+
+                    <!-- 语言选择器 -->
+                    <div class="flex items-center gap-1 px-1 py-0.5 bg-[#E6F0FF] rounded cursor-pointer hover:bg-[#D6E8FF] transition-colors">
+                        <div class="w-6 h-6 flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 2C14.5 5.5 15.5 8.5 15.5 12C15.5 15.5 14.5 18.5 12 22"/>
+                                <path d="M12 2C9.5 5.5 8.5 8.5 8.5 12C8.5 15.5 9.5 18.5 12 22"/>
+                                <path d="M2 12H22"/>
+                                <path d="M3 7H21"/>
+                                <path d="M3 17H21"/>
+                            </svg>
+                        </div>
+                        
+                        <span class="text-xs text-[#223548]">English</span>
+                        
+                        <div class="w-4 h-4 flex items-center justify-center">
+                            <svg width="8" height="4" viewBox="0 0 8 4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0 0L4 4L8 0" stroke="#71718A" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- 用户信息：admin -->
+                    <div class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded-full px-1 py-1 transition-colors">
+                        <!-- 用户头像 -->
+                        <div class="w-6 h-6 rounded-xl bg-gray-100 flex items-center justify-center">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle opacity="0.08" cx="8" cy="8" r="5.6" fill="#055CB9"/>
+                                <circle cx="8" cy="8" r="5.6" stroke="#1A1A1A" stroke-width="1"/>
+                                <path d="M5 13.5L8 8L11 13.5" stroke="#1A1A1A" stroke-width="1" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        
+                        <span class="text-xs font-medium text-black">admin</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ==================== 分割线 ==================== -->
+        <div class="w-full h-px bg-black/5"></div>
+
+        <!-- ==================== 主内容区域 ==================== -->
+        <main class="p-6">
+            <div class="max-w-7xl mx-auto">
+                <!-- 主内容占位区 -->
+                <div class="bg-gray-50 rounded-lg p-8 text-center">
+                    <p class="text-gray-400 mb-4">主内容区域</p>
+                    <div class="text-sm text-gray-500">
+                        <p>页面尺寸: 1298 × 752 px</p>
+                        <p class="mt-2">Personal App - 后台管理系统</p>
+                    </div>
+                </div>
+
+                <!-- 示例卡片区域 -->
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">设备状态</h3>
+                        <p class="text-xs text-gray-500">在线运行中</p>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">系统通知</h3>
+                        <p class="text-xs text-gray-500">9条未读消息</p>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h3 class="text-sm font-medium text-gray-700 mb-2">用户管理</h3>
+                        <p class="text-xs text-gray-500">admin 已登录</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
