@@ -19,11 +19,13 @@
 | 工艺时间模拟 | 真实的工艺参数计算 |
 | 物料流转逻辑 | 物料物理属性变化 |
 | MES 指令响应验证 | 自动化设备控制 |
+| **EAP功能仿真** | 真实SECS/GEM协议栈 |
 
 ### 1.3 使用场景
 1. **MES 功能验证**：在部署到真实产线前，验证 MES 逻辑是否正确
 2. **演示与培训**：向客户/新员工展示 MES 如何管理产线
 3. **接口调试**：验证 MES 与设备层接口协议
+4. **EAP功能测试**：模拟设备EAP行为，测试MES的EAP接口
 
 ---
 
@@ -40,6 +42,10 @@
 | | 工单接收与执行 | P0 | 接收 MES 工单，模拟执行过程 |
 | | 工艺参数交互 | P0 | 接收 MES 参数，上报采集数据 |
 | | WIP 流转上报 | P0 | 物料进入/离开设备时上报 |
+| **EAP 仿真** | 设备事件上报 | P0 | 模拟设备SECS-II事件上报 |
+| | 远程指令接收 | P0 | 接收MES下发的PPID/配方选择 |
+| | 数据采集上报 | P0 | 模拟SV/EC数据上报 |
+| | 设备状态SECS映射 | P1 | 设备状态与SECS状态对应 |
 | **仿真引擎** | 时间推进 | P0 | 支持加速/减速/暂停 |
 | | 设备状态机 | P0 | IDLE → RUNNING → COMPLETE |
 | | 物料流转 | P0 | 按工艺流程自动流转 |
@@ -192,18 +198,294 @@
 - 每个设备可有 **输出 Bank**（下游去向缓存）
 - Bank 也可独立存在（如中央缓存区）
 
-### 2.6 设备类型定义
+### 2.4 EAP (Equipment Automation Program) 仿真设计
 
-| 设备代码 | 名称 | 默认工艺时间 | 关键参数 |
-|---------|------|-------------|---------|
-| CLEAN | 清洗站 | 5 min | 清洗液类型、温度 |
-| DEPOSITION | 沉积站 | 30 min | 沉积厚度、温度 |
-| LITHO | 光刻站 | 20 min | 曝光能量、焦距 |
-| ETCH | 刻蚀站 | 25 min | 刻蚀时间、气体流量 |
-| IMPLANT | 离子注入 | 15 min | 能量、剂量 |
-| ANNEAL | 退火站 | 10 min | 温度、时间 |
+#### 2.4.1 什么是 EAP？
 
----
+EAP 是设备自动化程序，位于 MES 与设备之间，负责：
+- 将 MES 的高级指令转换为设备可执行的 SECS 消息
+- 将设备的 SECS 事件/数据上报给 MES
+- 管理设备状态、配方 (PPID)、作业执行
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    EAP 在 CIM 架构中的位置                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│    MES 层 (SiView)                                          │
+│    ┌─────────────────────────────────────────────────────┐ │
+│    │  • 工单管理    • 设备调度    • WIP 追踪             │ │
+│    └─────────────────────┬───────────────────────────────┘ │
+│                          │ HTTP/REST API                    │
+│                          ↓                                   │
+│    EAP 层 ─────────────→┌─────────────────┐                │
+│    (本仿真系统          │   EAP Adapter   │←── 模拟EAP功能  │
+│     实现此层)           │                 │                │
+│                         │ • S2F41 指令转换 │                │
+│                         │ • S6F11 事件上报 │                │
+│                         │ • S1F3/S1F4 数据采集│             │
+│                         └────────┬────────┘                │
+│                                  │ SECS-II (模拟)           │
+│                                  ↓                          │
+│    设备层                ┌─────────────────┐                │
+│    (仿真设备)            │  Equipment FSM  │                │
+│                          │                 │                │
+│                          │ • Process State │                │
+│                          │ • Control State │                │
+│                          │ • Recipe执行    │                │
+│                          └─────────────────┘                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 2.4.2 EAP 仿真核心目标
+
+本仿真系统能够**模拟真实设备的 EAP 行为**，让 MES 以为在与真实设备通信：
+
+| 能力 | 说明 | MES 验证点 |
+|-----|------|-----------|
+| **设备状态上报** | 模拟 S1F4 (设备状态查询响应) | MES 能否正确获取设备状态 |
+| **事件上报** | 模拟 S6F11 (CEID 收集事件) | MES 能否接收并处理设备事件 |
+| **远程指令** | 模拟 S2F41 (Host 命令) 接收与执行 | MES 能否远程控制设备 |
+| **配方管理** | 模拟 S7F3/S7F5 (PPID 下载/上传) | MES 能否下发工艺配方 |
+| **数据变量** | 模拟 S1F3/S1F4 (SV/EC 读写) | MES 能否采集过程数据 |
+
+#### 2.4.3 SECS/GEM 核心消息仿真
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              SECS-II 消息仿真映射表                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Stream 1 - 设备状态 (Equipment Status)                      │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ S1F1  Are You Online?      → 心跳检测              │   │
+│  │ S1F3  Selected Equipment Status → 查询状态变量     │   │
+│  │ S1F4  Selected Equipment Status Data → 状态数据上报 │   │
+│  │ S1F13 Establish Communication → 通信建立确认       │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Stream 2 - 设备控制 (Equipment Control)                     │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ S2F17 Date and Time Request  → 时间同步            │   │
+│  │ S2F33 Define Report          → 定义事件报告        │   │
+│  │ S2F35 Link Event Report      → 关联事件与报告      │   │
+│  │ S2F37 Enable/Disable Event   → 启用/禁用事件上报   │   │
+│  │ S2F41 Host Command           → 远程控制指令 ⭐     │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Stream 6 - 事件上报 (Event Data Collection)                 │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ S6F11 Event Report           → 事件上报 ⭐          │   │
+│  │      CEID: 集合事件ID                                │   │
+│  │      RPTID: 报告ID                                   │   │
+│  │      VID: 变量ID + 变量值                            │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+│  Stream 7 - 工艺程序 (Process Program)                       │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │ S7F1  PPID Request           → 查询可用配方        │   │
+│  │ S7F3  PPID Download          → 下载配方到设备 ⭐   │   │
+│  │ S7F5  PPID Upload            → 从设备上传配方 ⭐   │   │
+│  │ S7F17 Delete PPID            → 删除配方            │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 2.4.4 EAP 仿真消息格式
+
+本系统使用 **REST API 模拟 SECS-II 消息**，便于 MES 对接调试：
+
+**设备状态查询 (对应 S1F3/S1F4)**
+```json
+// MES → 仿真系统 (查询)
+{
+  "stream_function": "S1F3",
+  "equipment_id": "EQ001",
+  "svids": [1, 2, 3, 4],
+  "timestamp": "2024-01-15T08:30:00Z"
+}
+
+// 仿真系统 → MES (响应)
+{
+  "stream_function": "S1F4",
+  "equipment_id": "EQ001",
+  "status_variables": [
+    {"svid": 1, "name": "ControlState", "value": "REMOTE"},
+    {"svid": 2, "name": "ProcessState", "value": "PROCESSING"},
+    {"svid": 3, "name": "CurrentLotID", "value": "LOT2024001"},
+    {"svid": 4, "name": "CurrentPPID", "value": "DEP_100NM_STD"}
+  ],
+  "timestamp": "2024-01-15T08:30:00Z"
+}
+```
+
+**事件上报 (对应 S6F11)**
+```json
+// 仿真系统 → MES (主动上报)
+{
+  "stream_function": "S6F11",
+  "equipment_id": "EQ001",
+  "ceid": 1001,
+  "ce_name": "ProcessingStarted",
+  "reports": [
+    {
+      "rptid": 2001,
+      "variables": [
+        {"vid": 1001, "name": "LotID", "value": "LOT2024001"},
+        {"vid": 1002, "name": "PPID", "value": "DEP_100NM_STD"},
+        {"vid": 1003, "name": "RecipeParam1", "value": 300},
+        {"vid": 1004, "name": "StartTime", "value": "2024-01-15T08:30:00Z"}
+      ]
+    }
+  ],
+  "timestamp": "2024-01-15T08:30:00Z"
+}
+```
+
+**远程控制指令 (对应 S2F41)**
+```json
+// MES → 仿真系统 (指令下发)
+{
+  "stream_function": "S2F41",
+  "equipment_id": "EQ001",
+  "rcmd": "START",
+  "command_name": "开始加工",
+  "parameters": [
+    {"cpname": "LotID", "cpval": "LOT2024001"},
+    {"cpname": "PPID", "cpval": "DEP_100NM_STD"}
+  ],
+  "timestamp": "2024-01-15T08:25:00Z"
+}
+
+// 仿真系统 → MES (执行确认)
+{
+  "stream_function": "S2F42",
+  "equipment_id": "EQ001",
+  "hcack": 0,
+  "hcack_name": "OK",
+  "timestamp": "2024-01-15T08:25:01Z"
+}
+```
+
+**配方下载 (对应 S7F3)**
+```json
+// MES → 仿真系统 (下载配方)
+{
+  "stream_function": "S7F3",
+  "equipment_id": "EQ001",
+  "ppid": "DEP_100NM_STD",
+  "recipe_data": {
+    "thickness_nm": 100,
+    "temperature_c": 300,
+    "pressure_pa": 50,
+    "duration_sec": 1800
+  },
+  "timestamp": "2024-01-15T08:20:00Z"
+}
+
+// 仿真系统 → MES (下载确认)
+{
+  "stream_function": "S7F4",
+  "equipment_id": "EQ001",
+  "ppid": "DEP_100NM_STD",
+  "ackc7": 0,
+  "ackc7_name": "OK",
+  "timestamp": "2024-01-15T08:20:01Z"
+}
+```
+
+#### 2.4.5 设备状态与 GEM 状态映射
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              设备状态机 ↔ GEM Control State 映射             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  仿真系统状态         GEM Control State                      │
+│  ┌─────────┐                                         ┌───┐ │
+│  │ OFFLINE │────────────────────────────────────────→│ 0 │ │
+│  └────┬────┘                                         └───┘ │
+│       │ 初始化完成                                        │
+│       ↓                                                   │
+│  ┌─────────┐     S1F17 (Online)      ┌─────────┐    ┌───┐ │
+│  │ ONLINE  │────────────────────────→│ REMOTE  │───→│ 5 │ │
+│  └────┬────┘                         └────┬────┘    └───┘ │
+│       │                                  │                │
+│       │ S2F41 (Local Request)            │ S2F41          │
+│       │                                  │ (Remote)       │
+│       ↓                                  ↓                │
+│  ┌─────────┐     S1F17 (Online)      ┌─────────┐    ┌───┐ │
+│  │  LOCAL  │←────────────────────────│ LOCAL   │───→│ 4 │ │
+│  └─────────┘                         └─────────┘    └───┘ │
+│                                                             │
+│  Control State 说明:                                        │
+│  • OFFLINE (0): 设备离线，无法通信                          │
+│  • LOCAL (4): 本地控制模式，不接受Host指令                  │
+│  • REMOTE (5): 远程控制模式，接受Host指令                   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 2.4.6 预定义 CEID (Collection Event ID)
+
+| CEID | 事件名称 | 触发时机 | 附带数据 |
+|------|---------|---------|---------|
+| 1001 | ControlStateChanged | 控制状态变化 | NewState, OldState |
+| 1002 | ProcessingStateChanged | 加工状态变化 | NewState, OldState |
+| 1011 | LotArrived | 批次到达设备 | LotID, RecipeID |
+| 1012 | ProcessingStarted | 开始加工 | LotID, RecipeID, StartTime |
+| 1013 | ProcessingCompleted | 加工完成 | LotID, RecipeID, EndTime, Result |
+| 1014 | LotDeparted | 批次离开设备 | LotID, NextLocation |
+| 1021 | AlarmSet | 告警产生 | AlarmID, AlarmText, AlarmLevel |
+| 1022 | AlarmCleared | 告警清除 | AlarmID |
+
+#### 2.4.7 EAP 仿真配置
+
+```json
+// eap_config.json
+{
+  "equipment_id": "EQ001",
+  "secs_simulation": {
+    "enabled": true,
+    "message_format": "json_rest",
+    "control_state": "REMOTE",
+    "event_reporting": {
+      "enabled": true,
+      "auto_report": true,
+      "buffer_size": 100
+    }
+  },
+  "predefined_ceids": [
+    {"ceid": 1001, "name": "ControlStateChanged", "enabled": true},
+    {"ceid": 1002, "name": "ProcessingStateChanged", "enabled": true},
+    {"ceid": 1011, "name": "LotArrived", "enabled": true},
+    {"ceid": 1012, "name": "ProcessingStarted", "enabled": true},
+    {"ceid": 1013, "name": "ProcessingCompleted", "enabled": true},
+    {"ceid": 1014, "name": "LotDeparted", "enabled": true}
+  ],
+  "status_variables": [
+    {"svid": 1, "name": "ControlState", "type": "string"},
+    {"svid": 2, "name": "ProcessState", "type": "string"},
+    {"svid": 3, "name": "CurrentLotID", "type": "string"},
+    {"svid": 4, "name": "CurrentPPID", "type": "string"},
+    {"svid": 5, "name": "ProcessStartTime", "type": "datetime"},
+    {"svid": 6, "name": "ProcessEndTime", "type": "datetime"}
+  ],
+  "equipment_constants": [
+    {"ecid": 1, "name": "MaxProcessTime", "type": "number", "value": 3600},
+    {"ecid": 2, "name": "IdleTimeout", "type": "number", "value": 300}
+  ],
+  "host_commands": [
+    {"rcmd": "START", "description": "开始加工", "params": ["LotID", "PPID"]},
+    {"rcmd": "STOP", "description": "停止加工", "params": []},
+    {"rcmd": "PAUSE", "description": "暂停", "params": []},
+    {"rcmd": "RESUME", "description": "恢复", "params": []},
+    {"rcmd": "ABORT", "description": "终止", "params": []}
+  ]
+}
+```
 
 ### 2.5 AMHS 简化仿真设计
 
@@ -478,6 +760,17 @@
 | **状态颜色** | 🟡队列中 🟢执行中 ✅完成 🔴异常 |
 | **批量显示** | 同时显示多个进行中的搬运任务 |
 
+### 2.6 设备类型定义
+
+| 设备代码 | 名称 | 默认工艺时间 | 关键参数 |
+|---------|------|-------------|---------|
+| CLEAN | 清洗站 | 5 min | 清洗液类型、温度 |
+| DEPOSITION | 沉积站 | 30 min | 沉积厚度、温度 |
+| LITHO | 光刻站 | 20 min | 曝光能量、焦距 |
+| ETCH | 刻蚀站 | 25 min | 刻蚀时间、气体流量 |
+| IMPLANT | 离子注入 | 15 min | 能量、剂量 |
+| ANNEAL | 退火站 | 10 min | 温度、时间 |
+
 ---
 
 ## 3. 系统架构
@@ -495,8 +788,8 @@
         └────────────┴────────────┴────────────┘
                          │
               ┌──────────┴──────────┐
-              │   MES 接口适配层      │  ← REST API / WebSocket
-              │  (HTTP/WebSocket)   │
+              │   MES 接口适配层      │  ← REST API (HTTP)
+              │    (HTTP Only)      │
               └──────────┬──────────┘
                          │
 ┌────────────────────────┼────────────────────────────────────┐
@@ -509,6 +802,8 @@
 │              │ │ 设备状态机   │ │  ← 6种设备的状态管理        │
 │              │ ├─────────────┤ │                            │
 │              │ │ **Bank调度器**│ │  ← **缓存区状态、MES派工**  │
+│              │ ├─────────────┤ │                            │
+│              │ │ **EAP仿真器** │ │  ← **SECS消息模拟、事件上报**│
 │              │ ├─────────────┤ │                            │
 │              │ │ 物料追踪器   │ │  ← WIP 位置、工艺进度       │
 │              │ ├─────────────┤ │                            │
@@ -523,6 +818,8 @@
 │              │ │ 产线拓扑     │ │  ← 设备布局、连接关系       │
 │              │ ├─────────────┤ │                            │
 │              │ │ **Bank定义** │ │  ← **缓存区配置、容量**     │
+│              │ ├─────────────┤ │                            │
+│              │ │ **EAP配置**  │ │  ← **SECS变量、事件定义**   │
 │              │ ├─────────────┤ │                            │
 │              │ │ 工艺流程     │ │  ← 工艺步骤、循环逻辑       │
 │              │ ├─────────────┤ │                            │
@@ -550,7 +847,7 @@
 |-----|---------|------|
 | 引擎 | Godot 4.x (2D) | 游戏引擎负责时间推进、状态机、渲染 |
 | 语言 | GDScript | Godot 原生脚本，易学易调试 |
-| 接口 | HTTP + WebSocket | 与 MES 双向通信 |
+| 接口 | **HTTP REST API** | **仅使用 HTTP 与 MES 通信，简化对接** |
 | 配置 | JSON | 工厂模型、工艺流程配置文件 |
 
 ---
@@ -593,6 +890,7 @@
 │   │  │ • Bank调度     │←────→│ • 图标/颜色              │  │   │
 │   │  │ • 工艺流程     │      │ • 动画效果               │  │   │
 │   │  │ • MES消息路由  │      │ • 布局排列               │  │   │
+│   │  │ • EAP事件模拟  │      │                         │  │   │
 │   │  │                 │      │                         │  │   │
 │   │  │ 不关心x/y坐标！ │      │ 不关心业务逻辑！         │  │   │
 │   │  └─────────────────┘      └─────────────────────────┘  │   │
@@ -1039,6 +1337,8 @@
 | EQUIPMENT_COMPLETE | 工艺完成 | 状态→COMPLETE，批次移出至输出Bank |
 | LOT_MOVE | 物料需要流转 | 检查目标 Bank 容量，执行移动 |
 | MES_DISPATCH | 收到MES派工指令 | 将Lot加入设备队列或Bank |
+| **EAP_EVENT** | **设备状态变化** | **按SECS格式上报S6F11事件** |
+| **EAP_COMMAND** | **收到远程指令** | **执行S2F41指令并响应** |
 
 **Bank 相关的典型事件流：**
 ```
@@ -1068,6 +1368,7 @@
 ### 6.1 2D 产线布局 (示意)
 
 ```
+
 ┌──────────────────────────────────────────────────────────────────────────┐
 │  🏭 半导体工厂仿真系统 - MES验证平台                                       │
 │  仿真时间: 2024-01-15 10:30:00  |  速度: 100x  [暂停] [调整]               │
@@ -1179,26 +1480,136 @@ Content-Type: application/json
 }
 ```
 
-### 7.2 WebSocket 实时通道
+#### EAP 事件上报
+```
+POST /api/v1/eap/event
+Content-Type: application/json
 
-用于双向实时通信：
-
-```javascript
-// 连接
-ws://localhost:8080/ws/mes
-
-// 仿真系统 → MES (状态推送)
 {
-  "type": "status_update",
-  "data": { ... }
-}
-
-// MES → 仿真系统 (派工指令)
-{
-  "type": "dispatch",
-  "data": { ... }
+  "stream_function": "S6F11",
+  "equipment_id": "EQ001",
+  "ceid": 1012,
+  "ce_name": "ProcessingStarted",
+  "reports": [
+    {
+      "rptid": 2001,
+      "variables": [
+        {"vid": 1001, "name": "LotID", "value": "LOT2024001"},
+        {"vid": 1002, "name": "PPID", "value": "DEP_100NM_STD"}
+      ]
+    }
+  ],
+  "timestamp": "2024-01-15T08:30:00Z"
 }
 ```
+
+#### EAP 远程指令接收
+```
+POST /api/v1/eap/command
+Content-Type: application/json
+
+{
+  "stream_function": "S2F41",
+  "equipment_id": "EQ001",
+  "rcmd": "START",
+  "command_name": "开始加工",
+  "parameters": [
+    {"cpname": "LotID", "cpval": "LOT2024001"},
+    {"cpname": "PPID", "cpval": "DEP_100NM_STD"}
+  ],
+  "timestamp": "2024-01-15T08:25:00Z"
+}
+```
+
+### 7.2 HTTP 通信模式
+
+仿真系统与 MES 之间**仅使用 HTTP 请求**进行通信，不使用 WebSocket。
+
+#### 7.2.1 通信模式说明
+
+| 方向 | 方式 | 说明 |
+|-----|------|------|
+| 仿真系统 → MES | HTTP POST | 仿真系统主动上报状态/事件 |
+| MES → 仿真系统 | HTTP POST | MES 主动下发指令到仿真系统的 REST 端点 |
+| MES 查询 | HTTP GET | MES 通过 GET 请求查询仿真系统状态 |
+
+#### 7.2.2 消息推送机制
+
+由于不使用 WebSocket，采用以下方式实现"实时"通知：
+
+**方案 A：MES 提供回调接口（推荐）**
+```json
+// MES 配置回调地址
+{
+  "mes_callback_url": "http://mes-server:8080/api/v1/fabsim/events"
+}
+
+// 仿真系统主动上报到 MES
+POST http://mes-server:8080/api/v1/fabsim/events
+{
+  "event_type": "EQUIPMENT_STATUS_CHANGED",
+  "equipment_id": "EQ001",
+  "status": "RUNNING",
+  "timestamp": "2024-01-15T08:30:00Z"
+}
+```
+
+**方案 B：MES 轮询查询**
+```json
+// MES 定期查询仿真系统状态
+GET http://fabsim-server:8080/api/v1/status
+
+// 响应
+{
+  "pending_events": [
+    {"type": "EQUIPMENT_STATUS_CHANGED", "data": {...}},
+    {"type": "BANK_LOT_ARRIVE", "data": {...}}
+  ]
+}
+```
+
+**方案 C：HTTP 长轮询（可选）**
+```
+// MES 发起长轮询请求，仿真系统有事件时立即响应
+GET http://fabsim-server:8080/api/v1/events/longpoll?timeout=30
+
+// 30秒内有事件则立即返回，无事件则30秒后返回空
+```
+
+#### 7.2.3 HTTP 接口列表
+
+**仿真系统提供的端点（MES 调用）：**
+
+| 方法 | 端点 | 说明 |
+|-----|------|------|
+| POST | `/api/v1/equipment/command` | MES 下发设备控制指令 |
+| POST | `/api/v1/bank/dispatch` | MES 下发 Bank 派工指令 |
+| POST | `/api/v1/eap/command` | MES 下发 EAP 远程指令 (S2F41) |
+| GET | `/api/v1/equipment/{id}/status` | 查询设备状态 (S1F3) |
+| GET | `/api/v1/bank/{id}/status` | 查询 Bank 状态 |
+| GET | `/api/v1/equipment` | 获取所有设备列表 |
+| GET | `/api/v1/banks` | 获取所有 Bank 列表 |
+| GET | `/api/v1/lots` | 获取所有批次状态 |
+| GET | `/api/v1/events/pending` | 获取待处理事件（轮询用）|
+| POST | `/api/v1/config/callback` | 配置 MES 回调地址 |
+
+**MES 需要提供的端点（仿真系统调用）：**
+
+| 方法 | 端点 | 说明 |
+|-----|------|------|
+| POST | `/api/v1/mes/equipment/status` | 设备状态上报 |
+| POST | `/api/v1/mes/bank/event` | Bank 事件上报 |
+| POST | `/api/v1/mes/eap/event` | EAP 事件上报 (S6F11) |
+| POST | `/api/v1/mes/lot/complete` | 批次完成上报 |
+| POST | `/api/v1/mes/transport/request` | 搬运请求 |
+
+#### 7.2.4 设计优势
+
+1. **简单可靠**：HTTP 比 WebSocket 更容易调试和排错
+2. **防火墙友好**：标准 HTTP 端口，穿透性更好
+3. **易于集成**：MES 系统通常已有成熟的 HTTP 客户端
+4. **无状态**：便于水平扩展和故障恢复
+5. **调试方便**：可用 curl/Postman 直接测试接口
 
 ---
 
@@ -1294,7 +1705,128 @@ ws://localhost:8080/ws/mes
 }
 ```
 
-### 8.2 工艺配方 (recipe.json)
+### 8.2 EAP 配置 (eap_config.json)
+
+```json
+{
+  "version": "0.1",
+  "eap_simulation": {
+    "enabled": true,
+    "message_format": "json_rest",
+    "default_control_state": "REMOTE",
+    "event_reporting": {
+      "enabled": true,
+      "auto_report": true,
+      "buffer_size": 100
+    }
+  },
+  "collection_events": [
+    {
+      "ceid": 1001,
+      "name": "ControlStateChanged",
+      "description": "控制状态变化",
+      "enabled": true,
+      "report_id": 2001
+    },
+    {
+      "ceid": 1002,
+      "name": "ProcessingStateChanged",
+      "description": "加工状态变化",
+      "enabled": true,
+      "report_id": 2002
+    },
+    {
+      "ceid": 1011,
+      "name": "LotArrived",
+      "description": "批次到达设备",
+      "enabled": true,
+      "report_id": 2011
+    },
+    {
+      "ceid": 1012,
+      "name": "ProcessingStarted",
+      "description": "开始加工",
+      "enabled": true,
+      "report_id": 2012
+    },
+    {
+      "ceid": 1013,
+      "name": "ProcessingCompleted",
+      "description": "加工完成",
+      "enabled": true,
+      "report_id": 2013
+    },
+    {
+      "ceid": 1014,
+      "name": "LotDeparted",
+      "description": "批次离开设备",
+      "enabled": true,
+      "report_id": 2014
+    }
+  ],
+  "reports": [
+    {
+      "rptid": 2001,
+      "name": "ControlStateReport",
+      "vids": [1, 2]
+    },
+    {
+      "rptid": 2012,
+      "name": "ProcessStartReport",
+      "vids": [1, 2, 3, 4, 5]
+    },
+    {
+      "rptid": 2013,
+      "name": "ProcessCompleteReport",
+      "vids": [1, 2, 3, 4, 6]
+    }
+  ],
+  "status_variables": [
+    {"svid": 1, "name": "ControlState", "type": "string", "default": "REMOTE"},
+    {"svid": 2, "name": "ProcessState", "type": "string", "default": "IDLE"},
+    {"svid": 3, "name": "CurrentLotID", "type": "string", "default": ""},
+    {"svid": 4, "name": "CurrentPPID", "type": "string", "default": ""},
+    {"svid": 5, "name": "ProcessStartTime", "type": "datetime", "default": null},
+    {"svid": 6, "name": "ProcessEndTime", "type": "datetime", "default": null}
+  ],
+  "equipment_constants": [
+    {"ecid": 1, "name": "MaxProcessTime", "type": "number", "value": 3600, "description": "最大加工时间(秒)"},
+    {"ecid": 2, "name": "IdleTimeout", "type": "number", "value": 300, "description": "空闲超时时间(秒)"}
+  ],
+  "host_commands": [
+    {
+      "rcmd": "START",
+      "description": "开始加工",
+      "parameters": [
+        {"cpname": "LotID", "type": "string", "required": true},
+        {"cpname": "PPID", "type": "string", "required": true}
+      ]
+    },
+    {
+      "rcmd": "STOP",
+      "description": "停止加工",
+      "parameters": []
+    },
+    {
+      "rcmd": "PAUSE",
+      "description": "暂停",
+      "parameters": []
+    },
+    {
+      "rcmd": "RESUME",
+      "description": "恢复",
+      "parameters": []
+    },
+    {
+      "rcmd": "ABORT",
+      "description": "终止",
+      "parameters": []
+    }
+  ]
+}
+```
+
+### 8.3 工艺配方 (recipe.json)
 
 ```json
 {
@@ -1321,12 +1853,11 @@ ws://localhost:8080/ws/mes
 }
 ```
 
-### 8.3 MES 连接配置 (mes.json)
+### 8.4 MES 连接配置 (mes.json)
 
 ```json
 {
   "mes_endpoint": "http://localhost:8080/api/v1",
-  "websocket_url": "ws://localhost:8080/ws",
   "auth": {
     "type": "bearer",
     "token": "${MES_TOKEN}"
@@ -1334,6 +1865,11 @@ ws://localhost:8080/ws/mes
   "retry_policy": {
     "max_retries": 3,
     "retry_interval_ms": 5000
+  },
+  "eap_simulation": {
+    "enabled": true,
+    "auto_report_events": true,
+    "event_buffer_size": 100
   }
 }
 ```
@@ -1350,6 +1886,7 @@ ws://localhost:8080/ws/mes
 | **W1: 状态机** | 2天 | 设备状态机实现 | 设备能 IDLE→RUNNING→COMPLETE 切换 |
 | **W2: 仿真引擎** | 3天 | 时间推进、物料流转 | 批次能按工艺流程流转 |
 | **W2: MES接口** | 2天 | HTTP 上报、WebSocket 接收 | 能与模拟 MES 服务交互 |
+| **W2: EAP仿真** | 2天 | SECS消息模拟、事件上报 | 能模拟设备EAP行为 |
 | **W3: 可视化** | 3天 | 2D 布局、数据看板、日志 | 能直观看到产线运行 |
 | **W3: 联调** | 2天 | 与真实/模拟 MES 联调 | 完成至少一个完整流程验证 |
 
@@ -1365,31 +1902,37 @@ ws://localhost:8080/ws/mes
 │   │   ├── equipment_fsm.gd
 │   │   ├── bank_scheduler.gd      # Bank 调度器
 │   │   ├── lot_tracker.gd
-│   │   └── event_dispatcher.gd
+│   │   ├── event_dispatcher.gd
+│   │   └── eap_simulator.gd       # EAP 仿真器
 │   ├── /mes              # MES 接口层
 │   │   ├── mes_client.gd
 │   │   ├── mes_server.gd
 │   │   ├── message_formats.gd
-│   │   └── bank_message_handler.gd # Bank 消息处理
+│   │   ├── bank_message_handler.gd # Bank 消息处理
+│   │   └── eap_message_handler.gd  # EAP 消息处理
 │   ├── /factory          # 工厂模型
 │   │   ├── factory_loader.gd
 │   │   ├── equipment.gd
 │   │   ├── bank.gd                 # Bank 实体
-│   │   └── recipe.gd
+│   │   ├── recipe.gd
+│   │   └── eap_config.gd           # EAP 配置
 │   ├── /ui               # 可视化层
 │   │   ├── line_view.gd
 │   │   ├── bank_view.gd            # Bank 可视化
 │   │   ├── dashboard.gd
-│   │   └── log_panel.gd
+│   │   ├── log_panel.gd
+│   │   └── eap_event_viewer.gd     # EAP 事件查看器
 │   └── main.gd           # 入口
 ├── /config               # 配置文件
 │   ├── factory.json
 │   ├── recipe.json
+│   ├── eap_config.json    # EAP 配置
 │   └── mes.json
 ├── /assets               # 资源文件
 │   └── /icons            # 设备图标
 ├── /tests                # 测试
-│   └── mes_mock_server.py  # MES 模拟服务
+│   ├── mes_mock_server.py   # MES 模拟服务
+│   └── eap_test_client.py   # EAP 测试客户端
 ├── project.godot         # Godot 项目文件
 └── README.md
 ```
@@ -1409,7 +1952,19 @@ ws://localhost:8080/ws/mes
 | WIP 追溯 | 查询批次历史 | 完整追溯链 |
 | 良率统计 | 模拟不良 → 统计报表 | 数据准确 |
 
-### 10.2 性能指标
+### 10.2 EAP 功能验证场景
+
+| 场景 | 验证内容 | 通过标准 |
+|-----|---------|---------|
+| 状态查询 | MES 查询设备状态 (S1F3/S1F4) | 返回正确的 SV 数据 |
+| 事件上报 | 设备状态变化自动上报 (S6F11) | MES 接收到正确事件 |
+| 远程启动 | MES 远程指令启动 (S2F41 START) | 设备正确响应并执行 |
+| 配方下载 | MES 下载配方到设备 (S7F3) | 配方正确接收并应用 |
+| 配方上传 | 设备上传配方到 MES (S7F5) | 配方数据正确上报 |
+| 参数采集 | 过程数据自动采集上报 | SV 数据实时上报 |
+| 异常告警 | 设备异常事件上报 | 告警 CEID 正确上报 |
+
+### 10.3 性能指标
 
 | 指标 | 目标值 |
 |-----|-------|
@@ -1418,6 +1973,7 @@ ws://localhost:8080/ws/mes
 | 支持并发批次 | ≥ 100 个 |
 | 内存占用 | < 500MB |
 | 启动时间 | < 3秒 |
+| EAP 事件延迟 | < 100ms |
 
 ---
 
@@ -1439,9 +1995,17 @@ ws://localhost:8080/ws/mes
 | **Transport** | **搬运任务，AMHS 执行的批次移动操作** |
 | **Area** | **区域，工厂的逻辑分区（如光刻区、刻蚀区）** |
 | **Work Area** | **工作区域，更细粒度的逻辑分组** |
+| **EAP** | **Equipment Automation Program，设备自动化程序** |
+| **SECS** | **SEMI Equipment Communications Standard，半导体设备通信标准** |
+| **GEM** | **Generic Equipment Model，通用设备模型** |
+| **CEID** | **Collection Event ID，收集事件标识** |
+| **SVID** | **Status Variable ID，状态变量标识** |
+| **PPID** | **Process Program ID，工艺程序(配方)标识** |
+| **SML** | **SECS Message Language，SECS 消息语言** |
 
 ---
 
-**文档版本**: 0.2  
-**最后更新**: 2024-01-15  
+**文档版本**: 0.3  
+**最后更新**: 2024-04-15  
+**更新内容**: 新增 EAP 仿真模块设计、SiView风格接口定义  
 **作者**: FabSim Team

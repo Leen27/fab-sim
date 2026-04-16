@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://dvxv26julc8sa"]
+
+[ext_resource type="Script" uid="uid://c178x8hrhk8y7" path="res://src/scripts/log.gd" id="1_kkvs4"]
+[ext_resource type="Script" uid="uid://briq6gqlcg08" path="res://src/scenes/main.gd" id="1_rr2wm"]
+
+[node name="main" type="Node2D" unique_id=57011841]
+script = ExtResource("1_rr2wm")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=303218461]
+offset_right = 1150.0
+offset_bottom = 646.0
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=177903775]
+position = Vector2(575, 324)
+
+[node name="Log" type="Control" parent="." unique_id=1560789650]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1150.0
+offset_bottom = 645.0
+script = ExtResource("1_kkvs4")
+
+[node name="Panel" type="Panel" parent="Log" unique_id=159554577]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -227.0
+offset_right = 581.0
+grow_vertical = 0
+
+[node name="ItemList" type="ItemList" parent="Log/Panel" unique_id=855565042]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+auto_width = true
+same_column_width = true
