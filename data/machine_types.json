@@ -29,6 +29,27 @@
       "icon": "🟥"
     },
     {
+      "id": "implant",
+      "name": "离子注入机",
+      "color": "#9400D3",
+      "default_time": 25,
+      "icon": "🟣"
+    },
+    {
+      "id": "cmp",
+      "name": "CMP研磨机",
+      "color": "#00CED1",
+      "default_time": 35,
+      "icon": "🔵"
+    },
+    {
+      "id": "metrology",
+      "name": "量测机",
+      "color": "#FF69B4",
+      "default_time": 20,
+      "icon": "💗"
+    },
+    {
       "id": "heat",
       "name": "热处理",
       "color": "#FF8C00",

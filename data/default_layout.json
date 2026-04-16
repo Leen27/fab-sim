@@ -12,7 +12,7 @@
       "id": "M2",
       "type": "deposition",
       "name": "沉积机",
-      "x": 280,
+      "x": 250,
       "y": 300,
       "process_time": 30
     },
@@ -20,7 +20,7 @@
       "id": "M3",
       "type": "lithography",
       "name": "光刻机",
-      "x": 460,
+      "x": 400,
       "y": 300,
       "process_time": 45
     },
@@ -28,23 +28,47 @@
       "id": "M4",
       "type": "etching",
       "name": "刻蚀机",
-      "x": 640,
+      "x": 550,
       "y": 300,
       "process_time": 30
     },
     {
       "id": "M5",
-      "type": "heat",
-      "name": "热处理",
-      "x": 820,
+      "type": "implant",
+      "name": "离子注入机",
+      "x": 700,
+      "y": 300,
+      "process_time": 25
+    },
+    {
+      "id": "M6",
+      "type": "cmp",
+      "name": "CMP研磨机",
+      "x": 850,
+      "y": 300,
+      "process_time": 35
+    },
+    {
+      "id": "M7",
+      "type": "metrology",
+      "name": "量测机",
+      "x": 1000,
       "y": 300,
       "process_time": 20
     },
     {
-      "id": "M6",
+      "id": "M8",
+      "type": "heat",
+      "name": "热处理",
+      "x": 1150,
+      "y": 300,
+      "process_time": 20
+    },
+    {
+      "id": "M9",
       "type": "inspect",
       "name": "检测机",
-      "x": 1000,
+      "x": 1300,
       "y": 300,
       "process_time": 15
     }
@@ -53,35 +77,56 @@
     {
       "id": "B1",
       "name": "清洗后缓冲",
-      "x": 190,
+      "x": 175,
       "y": 420,
       "capacity": 5
     },
     {
       "id": "B2",
       "name": "沉积后缓冲",
-      "x": 370,
+      "x": 325,
       "y": 420,
       "capacity": 5
     },
     {
       "id": "B3",
       "name": "光刻后缓冲",
-      "x": 550,
+      "x": 475,
       "y": 420,
       "capacity": 5
     },
     {
       "id": "B4",
       "name": "刻蚀后缓冲",
-      "x": 730,
+      "x": 625,
       "y": 420,
       "capacity": 5
     },
     {
       "id": "B5",
+      "name": "注入后缓冲",
+      "x": 775,
+      "y": 420,
+      "capacity": 5
+    },
+    {
+      "id": "B6",
+      "name": "CMP后缓冲",
+      "x": 925,
+      "y": 420,
+      "capacity": 5
+    },
+    {
+      "id": "B7",
+      "name": "量测后缓冲",
+      "x": 1075,
+      "y": 420,
+      "capacity": 5
+    },
+    {
+      "id": "B8",
       "name": "热处理后缓冲",
-      "x": 910,
+      "x": 1225,
       "y": 420,
       "capacity": 5
     }
@@ -96,6 +141,12 @@
     {"from": "M4", "to": "B4"},
     {"from": "B4", "to": "M5"},
     {"from": "M5", "to": "B5"},
-    {"from": "B5", "to": "M6"}
+    {"from": "B5", "to": "M6"},
+    {"from": "M6", "to": "B6"},
+    {"from": "B6", "to": "M7"},
+    {"from": "M7", "to": "B7"},
+    {"from": "B7", "to": "M8"},
+    {"from": "M8", "to": "B8"},
+    {"from": "B8", "to": "M9"}
   ]
 }

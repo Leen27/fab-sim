@@ -8,8 +8,11 @@
         {"step": 2, "machine_type": "deposition", "time": 30},
         {"step": 3, "machine_type": "lithography", "time": 45},
         {"step": 4, "machine_type": "etching", "time": 30},
-        {"step": 5, "machine_type": "heat", "time": 20},
-        {"step": 6, "machine_type": "inspect", "time": 15}
+        {"step": 5, "machine_type": "implant", "time": 25},
+        {"step": 6, "machine_type": "cmp", "time": 35},
+        {"step": 7, "machine_type": "metrology", "time": 20},
+        {"step": 8, "machine_type": "heat", "time": 20},
+        {"step": 9, "machine_type": "inspect", "time": 15}
       ]
     }
   ]
