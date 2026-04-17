@@ -11,7 +11,8 @@ var config: Dictionary = {
 	"server_port": 8081
 }
 
-
 func _ready():
-  log_panel.add_item("🔥 FabSim v0.1 启动！")
-  print('xxxx')
+	log_panel.add_item("🔥 FabSim v0.1 启动！")
+
+func _on_editor_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://src/scenes/editor.tscn")

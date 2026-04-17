@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://oqhudvqmoeqv"]
+
+[ext_resource type="Script" uid="uid://bc12wa1kurc0o" path="res://src/scripts/editor/menu_bar.gd" id="1_x6qec"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qggf3"]
+bg_color = Color(0.8235294, 0.41568628, 0.34509805, 1)
+
+[node name="editor" type="Node2D" unique_id=880079963]
+
+[node name="MenuBar" type="Control" parent="." unique_id=1778083227]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1152.0
+offset_bottom = 651.0
+script = ExtResource("1_x6qec")
+
+[node name="Panel" type="Panel" parent="MenuBar" unique_id=691949673]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = -3.0
+offset_right = 2.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MenuBar/Panel" unique_id=1992614144]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -3.0
+offset_bottom = 50.0
+grow_horizontal = 2
+
+[node name="NewButton" type="MenuButton" parent="MenuBar/Panel/HBoxContainer" unique_id=235413454]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_qggf3")
+text = "新建"
+alignment = 0
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=127912655]
+position = Vector2(575, 323)
